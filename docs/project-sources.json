@@ -1,0 +1,93 @@
+[
+  {
+    "id": "techstage",
+    "url": "https://techstage.ru/",
+    "finalUrl": "https://techstage.ru/",
+    "status": 200,
+    "title": "Сценические технологии и оборудование · TECH STAGE",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:12:51.380Z"
+  },
+  {
+    "id": "aurum",
+    "url": "https://aurum-accordions.ru/",
+    "finalUrl": "https://aurum-accordions.ru/",
+    "status": 200,
+    "title": "Аккордеоны и баяны АУРУМ — российский производитель",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:12:51.927Z"
+  },
+  {
+    "id": "td-music",
+    "url": "https://dev.td-music.ru/",
+    "finalUrl": "https://dev.td-music.ru/",
+    "status": 200,
+    "title": "Музыкальные инструменты — Торговый Дом · TD Music",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:12:52.858Z"
+  },
+  {
+    "id": "begarat",
+    "url": "https://press.begarat.ru/",
+    "finalUrl": "https://press.begarat.ru/",
+    "status": 200,
+    "title": "БЕГАРАТ новости | Новости пищевой промышленности",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:12:58.497Z"
+  },
+  {
+    "id": "nfk24",
+    "url": "https://nfk24.ru/",
+    "finalUrl": "https://nfk24.ru/",
+    "status": 200,
+    "title": "Кредит под залог недвижимости, рефинансирование кредитов и ипотека | НФК",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:12:58.972Z"
+  },
+  {
+    "id": "paxra",
+    "url": "https://paxra.ru/",
+    "finalUrl": "https://paxra.ru/",
+    "status": 200,
+    "title": "Запчасти и комплектующие для пищевого оборудования | Магазин Пахра",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:13:04.193Z"
+  },
+  {
+    "id": "nevskaya",
+    "url": "https://nevskaya-usadba.ru/",
+    "finalUrl": "https://nevskaya-usadba.ru/",
+    "status": 200,
+    "title": "Невская Усадьба",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:13:09.116Z"
+  },
+  {
+    "id": "leadpulse",
+    "url": "https://leadpulse.ru/",
+    "finalUrl": "https://leadpulse.ru/",
+    "status": 200,
+    "title": "Лид-Пульс — агентство интернет-маркетинга в Москве",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:13:10.353Z"
+  },
+  {
+    "id": "donstroy",
+    "url": "https://donstroy.moscow/",
+    "finalUrl": "https://donstroy.moscow/",
+    "status": 200,
+    "title": "Донстрой – Ведущий девелопер Москвы | Квартиры по ценам застройщика. Продажа квартир в новостройках комфорт, бизнес, премиум и делюкс класса – официальный сайт",
+    "usable": false,
+    "capturedAt": "2026-10-13T06:13:11.485Z",
+    "note": "Current site is not used to represent historical work; original implementation is unverified."
+  },
+  {
+    "id": "gnosis",
+    "url": "https://gnosis-astro.ru/",
+    "finalUrl": "https://gnosis-astro.ru/",
+    "status": 200,
+    "title": "Gnosis Astro — астропроцессор, натальная карта и транзиты",
+    "usable": true,
+    "capturedAt": "2026-10-13T06:13:17.465Z"
+  }
+]

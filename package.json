@@ -1,0 +1,24 @@
+{
+  "name": "web-lizard-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "deploy": "python scripts/deploy.py",
+    "test": "python scripts/verify.py",
+    "test:browser": "playwright test",
+    "package": "python scripts/deploy.py --package-only",
+    "format": "prettier --write index.html src scripts/*.mjs tests *.js *.json *.md"
+  },
+  "devDependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@playwright/test": "^1.64.0",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
+    "vite": "^7.1.0"
+  }
+}

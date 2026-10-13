@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.local/
+artifacts/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+__pycache__/
+*.log
