@@ -1,23 +1,24 @@
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/space-grotesk";
 import "./style.css";
-import { modern, legacy, gnosis, capabilities } from "./data.js";
+import { modern, legacy, gnosis } from "./data.js";
 
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+const mobile = matchMedia("(max-width: 700px)");
 const scenes = $$(".scene");
 const labels = [
-  "INTRODUCTION",
-  "TWO ERAS",
-  "CURRENT WORK",
-  "THE ARCHIVE",
-  "GNOSIS / LAB",
-  "THE TOOLSET",
-  "BEYOND CODE",
-  "AI WORKFLOW",
-  "THE APPROACH",
-  "LET’S TALK",
+  "ÉVIDEMMENT / О САЙТЕ",
+  "AVANT / ФУНДАМЕНТ",
+  "PREUVES / ПРОЕКТЫ",
+  "ARCHIVE / ДО AI",
+  "HÉRÉSIE / GNOSIS",
+  "CRÉATION / ТВОРЧЕСТВО",
+  "SYSTÈMES / СИСТЕМЫ",
+  "DIALOGUE / AI",
+  "MÉTIER / ПОДХОД",
+  "PARLONS / КОНТАКТ",
 ];
 const aliases = {
   projects: "modern",
@@ -50,8 +51,40 @@ function finishTransition() {
     scene.classList.toggle("active", index === active);
   });
 }
-function navigate(index, { historyMode = "push", focus = false } = {}) {
+function navigate(
+  index,
+  { historyMode = "push", focus = false, scroll = true } = {},
+) {
   index = Math.max(0, Math.min(scenes.length - 1, index));
+  if (mobile.matches) {
+    active = index;
+    scenes.forEach((s, i) => s.classList.toggle("active", i === index));
+    $$(".scene-nav a").forEach((a, i) =>
+      i === index
+        ? a.setAttribute("aria-current", "page")
+        : a.removeAttribute("aria-current"),
+    );
+    $("#scene-number").textContent = String(index + 1).padStart(2, "0");
+    $("#scene-label").textContent = labels[index];
+    $(".footer-progress i").style.width =
+      ((index + 1) / scenes.length) * 100 + "%";
+    $("#previous").disabled = index === 0;
+    $("#next").disabled = index === scenes.length - 1;
+    if (location.hash !== `#${scenes[index].id}` && historyMode !== "none")
+      history[historyMode === "replace" ? "replaceState" : "pushState"](
+        null,
+        "",
+        `#${scenes[index].id}`,
+      );
+    if (scroll)
+      scenes[index].scrollIntoView({
+        behavior: initialized && !reduced.matches ? "smooth" : "instant",
+        block: "start",
+      });
+    if (focus) $("h1,h2", scenes[index])?.focus({ preventScroll: true });
+    initialized = true;
+    return;
+  }
   const changed = index !== active;
   if (transitioning) {
     if (!changed) return;
@@ -147,6 +180,7 @@ function canScroll(direction) {
 document.addEventListener(
   "wheel",
   (e) => {
+    if (mobile.matches) return;
     if (
       $("#gallery").open ||
       e.ctrlKey ||
@@ -185,6 +219,7 @@ document.addEventListener(
   { passive: false },
 );
 document.addEventListener("keydown", (e) => {
+  if (mobile.matches) return;
   if ($("#gallery").open) {
     if (e.key === "ArrowRight") showImage(galleryIndex + 1);
     if (e.key === "ArrowLeft") showImage(galleryIndex - 1);
@@ -230,6 +265,7 @@ let touch = null;
 document.addEventListener(
   "touchstart",
   (e) => {
+    if (mobile.matches) return;
     if (e.touches.length !== 1 || $("#gallery").open) return;
     touch = {
       x: e.touches[0].clientX,
@@ -244,6 +280,7 @@ document.addEventListener(
 document.addEventListener(
   "touchend",
   (e) => {
+    if (mobile.matches) return;
     if (!touch || !e.changedTouches.length) return;
     const dy = touch.y - e.changedTouches[0].clientY,
       dx = touch.x - e.changedTouches[0].clientX;
@@ -263,7 +300,7 @@ document.addEventListener(
 
 const imagePath = (id) => `/portfolio-media/projects/${id}.webp`;
 const tags = (p) =>
-  `<div class="tags">${p.tags.map((t) => `<span>${t}</span>`).join("")}</div>`;
+  `<div class="tags">${(p.capabilities || p.tags).map((t) => `<span>${t}</span>`).join("")}</div>${p.capabilities ? `<div class="case-tech">${p.tags.join(" / ")}</div>` : ""}`;
 function frame(p) {
   return `<button class="browser-frame tilt" data-gallery="${p.id}" aria-label="Открыть скриншоты ${p.name}"><span class="browser-bar"><i></i><i></i><i></i><span>${new URL(p.url).hostname}</span><b>↗</b></span><img src="${imagePath(p.images[0])}" alt="${p.name} — реальный скриншот сайта" width="1440" height="1000" loading="lazy" /></button>`;
 }
@@ -277,7 +314,7 @@ function renderProject(group, index) {
     b.tabIndex = i === index ? 0 : -1;
   });
   stage.setAttribute("aria-labelledby", `${group}-tab-${index}`);
-  const info = `<div class="project-info"><span class="mono">${p.type}</span><h3>${p.name}</h3><p>${p.description}</p>${tags(p)}<a class="text-link" href="${p.url}" target="_blank" rel="noopener noreferrer">ОТКРЫТЬ САЙТ ↗</a></div>`;
+  const info = `<div class="project-info"><span class="mono">${p.type}</span><h3>${p.name}</h3>${p.challenge ? `<div class="case-line"><b>ЗАДАЧА</b><p>${p.challenge}</p></div><div class="case-line"><b>МОЯ РАБОТА</b><p>${p.contribution}</p></div>` : `<p>${p.description}</p>`}${tags(p)}<a class="text-link" href="${p.url}" target="_blank" rel="noopener noreferrer">ОТКРЫТЬ САЙТ ↗</a></div>`;
   if (group === "modern")
     stage.innerHTML = `<div>${frame(p)}<span class="gallery-hint">НАЖМИТЕ НА СКРИНШОТ, ЧТОБЫ РАССМОТРЕТЬ / ${p.images.length} КАДРА</span></div>${info}`;
   else
@@ -354,30 +391,6 @@ $("#gallery").addEventListener("click", (e) => {
       e.target.close();
   }
 });
-function selectStack(i) {
-  const [name, description, technologies] = capabilities[i];
-  $$("[data-stack]").forEach((b, j) => {
-    b.classList.toggle("selected", i === j);
-    b.setAttribute("aria-selected", String(i === j));
-    b.tabIndex = i === j ? 0 : -1;
-  });
-  $("#stack-detail").innerHTML =
-    `<span class="mono">0${i + 1} / CONNECTED CAPABILITIES</span><h3>${name}</h3><p>${description}</p><div class="tags">${technologies.map((t) => `<span>${t}</span>`).join("")}</div>`;
-  $("#stack-detail").setAttribute("aria-labelledby", "stack-tab-" + i);
-}
-$$("[data-stack]").forEach((b, i) => {
-  b.id = "stack-tab-" + i;
-  b.setAttribute("aria-controls", "stack-detail");
-  b.onclick = () => selectStack(i);
-  b.onpointerenter = (e) => {
-    if (e.pointerType === "mouse") selectStack(i);
-  };
-});
-$(".stack-map").addEventListener("keydown", (e) =>
-  tabKeys(e, $(".stack-map"), selectStack),
-);
-selectStack(0);
-
 function bindTilt(root = document) {
   $$(".tilt", root).forEach((el) => {
     let raf = 0;
@@ -486,3 +499,26 @@ window.addEventListener("resize", drawField);
 reduced.addEventListener("change", drawField);
 document.addEventListener("visibilitychange", drawField);
 fromHash();
+const chapterObserver = new IntersectionObserver(
+  (entries) => {
+    if (!mobile.matches) return;
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    const index = scenes.indexOf(visible.target);
+    if (index !== active)
+      navigate(index, { historyMode: "replace", scroll: false });
+  },
+  { threshold: [0.25, 0.5, 0.75] },
+);
+scenes.forEach((scene) => chapterObserver.observe(scene));
+mobile.addEventListener("change", () => {
+  finishTransition();
+  initialized = false;
+  scenes.forEach((scene) => {
+    scene.inert = false;
+    scene.setAttribute("aria-hidden", "false");
+  });
+  fromHash();
+});

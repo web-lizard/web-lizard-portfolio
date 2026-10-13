@@ -4,6 +4,11 @@ export const modern = [
     name: "TD MUSIC",
     url: "https://dev.td-music.ru/",
     type: "E-COMMERCE / LARAVEL / VUE / B2B",
+    challenge:
+      "Превратить большой каталог и торговые сценарии в удобный рабочий продукт.",
+    contribution:
+      "Собственная архитектура, серверная логика, интерфейсы каталога и интеграции — от структуры данных до пользовательского пути.",
+    capabilities: ["Каталог", "Ecommerce", "B2B-сценарии", "API", "Интеграции"],
     description:
       "Современный интернет-магазин и внутренняя торговая система. Backend, frontend, каталог, пользовательские сценарии, интеграции и архитектура приложения.",
     tags: [
@@ -24,6 +29,16 @@ export const modern = [
     name: "AURUM ACCORDIONS",
     url: "https://aurum-accordions.ru/",
     type: "E-COMMERCE / CATALOGUE / DEVELOPMENT",
+    challenge:
+      "Помочь человеку разобраться в сложном музыкальном инструменте и перейти к покупке.",
+    contribution:
+      "Разработка и доработка каталога, интерфейсов и ecommerce-функций с учётом нишевого продукта.",
+    capabilities: [
+      "Структура каталога",
+      "Карточки товара",
+      "Путь к покупке",
+      "Frontend",
+    ],
     description:
       "Интернет-магазин музыкальных инструментов. Разработка и доработка технической части сайта, каталог, интерфейсы и ecommerce-функциональность.",
     tags: ["E-commerce", "Каталог", "Frontend", "Web development"],
@@ -34,6 +49,16 @@ export const modern = [
     name: "TECHSTAGE",
     url: "https://techstage.ru/",
     type: "COMMERCIAL WEB / DEVELOPMENT / SUPPORT",
+    challenge:
+      "Объяснить технический B2B-продукт через ясную структуру и убедительный веб-интерфейс.",
+    contribution:
+      "Разработка, технические доработки и поддержка коммерческого сайта в сложной отрасли.",
+    capabilities: [
+      "B2B-структура",
+      "Подача продукта",
+      "Интерфейс",
+      "Поддержка",
+    ],
     description:
       "Коммерческий веб-проект в сфере сценических технологий. Разработка, технические доработки и поддержка.",
     tags: ["Commercial web", "Frontend", "Техническая поддержка"],
@@ -108,56 +133,3 @@ export const gnosis = {
   name: "GNOSIS",
   images: ["gnosis", "gnosis-detail", "gnosis-app"],
 };
-export const capabilities = [
-  [
-    "WEB DEVELOPMENT",
-    "Сайты и приложения, которые решают реальные коммерческие задачи. От CMS до собственной архитектуры.",
-    ["PHP", "Laravel", "WordPress", "WooCommerce", "Bitrix", "Bitrix24"],
-  ],
-  [
-    "FRONTEND",
-    "Интерфейсы со своим характером. Сложная логика, аккуратная вёрстка и внимание к движению.",
-    ["JavaScript", "TypeScript", "Vue 3", "Nuxt", "Inertia", "HTML", "CSS"],
-  ],
-  [
-    "BACKEND & DATA",
-    "Данные, бизнес-логика и API — единая основа работающего продукта.",
-    ["REST API", "MySQL", "Redis", "Python"],
-  ],
-  [
-    "INFRASTRUCTURE",
-    "От локальной сборки до сервера. Настройка окружения, доставка обновлений и сопровождение.",
-    [
-      "Linux",
-      "Docker",
-      "Nginx",
-      "PHP-FPM",
-      "Deployment",
-      "Server administration",
-    ],
-  ],
-  [
-    "INTEGRATIONS",
-    "Связываю отдельные системы в понятный процесс. Данные проходят путь без ручного копирования.",
-    [
-      "1C",
-      "Bitrix24",
-      "External APIs",
-      "Telegram bots",
-      "CRM",
-      "Data exchange",
-    ],
-  ],
-  [
-    "AUTOMATION & AI",
-    "Ускоряю разработку и обработку информации. Выбираю инструменты под задачу, проверяю результат.",
-    [
-      "AI coding agents",
-      "LLM workflows",
-      "n8n",
-      "Content automation",
-      "Data processing",
-      "Rapid prototyping",
-    ],
-  ],
-];

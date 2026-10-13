@@ -14,7 +14,7 @@ def package():
     files = sorted(p for p in dist.rglob('*') if p.is_file())
     for path in files:
         relative = path.relative_to(dist)
-        if relative.parts[0] not in ('index.html', 'portfolio-assets', 'portfolio-media'):
+        if relative.parts[0] not in ('index.html', 'approach', 'portfolio-assets', 'portfolio-media'):
             raise RuntimeError(f'Unexpected production file: {relative}')
         if path.is_symlink():
             raise RuntimeError('Symlinks are not permitted')

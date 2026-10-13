@@ -190,7 +190,7 @@ test("project tabs, all screenshot galleries and keyboard focus", async ({
     await page.locator("#gallery-next").click();
   }
 });
-test("mobile scenes, small screens and swipe navigation", async ({
+test("mobile chapters form a natural vertical document", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -199,16 +199,16 @@ test("mobile scenes, small screens and swipe navigation", async ({
     hasTouch: true,
   });
   const page = await context.newPage();
-  for (const width of [390, 320, 768]) {
+  for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     for (const id of ids) {
       await page.goto("/#" + id);
       await page.evaluate(() => document.fonts.ready);
-      await page.waitForTimeout(1050);
+      await expect(page.locator(`#${id}`)).toBeVisible();
       expect(
-        await page
-          .locator(".scene.active")
-          .evaluate((s) => s.scrollWidth <= s.clientWidth + 1),
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
         `${width} ${id}`,
       ).toBeTruthy();
       if (width === 390)
@@ -219,29 +219,12 @@ test("mobile scenes, small screens and swipe navigation", async ({
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/#contact");
-  await page.waitForTimeout(1000);
-  await page.evaluate(() => {
-    const s = document.querySelector(".scene.active");
-    const t = new Touch({
-      identifier: 0,
-      target: s,
-      clientX: 150,
-      clientY: 240,
-    });
-    s.dispatchEvent(
-      new TouchEvent("touchstart", { bubbles: true, touches: [t] }),
-    );
-    s.dispatchEvent(
-      new TouchEvent("touchend", {
-        bubbles: true,
-        changedTouches: [
-          new Touch({ identifier: 0, target: s, clientX: 150, clientY: 390 }),
-        ],
-      }),
-    );
-  });
-  await expect(page.locator(".scene.active")).toHaveAttribute("id", "systems");
+  await page.goto("/#home");
+  const before = await page.evaluate(() => scrollY);
+  await page.mouse.wheel(0, 650);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+  expect(await page.locator(".scene").count()).toBe(10);
+  expect(await page.locator(".scene[inert]").count()).toBe(0);
   await context.close();
 });
 test("reduced motion and absent canvas/WebGL degrade cleanly", async ({
@@ -257,9 +240,10 @@ test("reduced motion and absent canvas/WebGL degrade cleanly", async ({
   await page.goto("/#home");
   await page.locator('a.button[href="#modern"]').click();
   await expect(page.locator(".scene.active")).toHaveAttribute("id", "modern");
-  await page.goto("/#stack");
-  await page.locator('[data-stack="5"]').click();
-  await expect(page.locator("#stack-detail")).toContainText("LLM workflows");
+  await page.goto("/#systems");
+  await page.locator('a[href="/approach/"]').click();
+  await expect(page).toHaveURL(/\/approach\/$/);
+  await expect(page.locator("h1")).toContainText("Я ВОЗЬМУ НА СЕБЯ AI");
   expect(errors).toEqual([]);
   await context.close();
 });

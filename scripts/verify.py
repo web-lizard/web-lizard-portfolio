@@ -20,7 +20,7 @@ class InstallerTests(unittest.TestCase):
         self.root.mkdir(parents=True)
         self.release = self.base / 'release'
         self.release.mkdir()
-        self.files = {'index.html': '<h1>Portfolio</h1>', 'portfolio-assets/app.js': 'console.log(1)', 'portfolio-media/portrait.webp': 'test image'}
+        self.files = {'index.html': '<h1>Portfolio</h1>', 'approach/index.html': '<h1>Approach</h1>', 'approach/.web-lizard-portfolio': 'web-lizard-portfolio\n', 'portfolio-assets/app.js': 'console.log(1)', 'portfolio-media/portrait.webp': 'test image'}
         self.write_release()
         (self.root / 'index.html').write_text('old homepage')
         for name in ['gnosis/index.html', 'tarot/app/index.html', 'other/data.txt', '.htaccess']:
@@ -51,6 +51,7 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual((self.root / name).read_bytes(), content)
         self.assertEqual((backup / 'index.html').read_text(), 'old homepage')
         self.assertEqual((self.root / 'index.html').read_text(), self.files['index.html'])
+        self.assertEqual((self.root / 'approach/index.html').read_text(), self.files['approach/index.html'])
 
     def test_dry_run_does_not_write(self):
         old = self.snapshot()
@@ -90,6 +91,16 @@ class InstallerTests(unittest.TestCase):
         gnosis.mkdir(parents=True)
         with self.assertRaisesRegex(ValueError, 'GNOSIS'):
             installer.install(self.release, gnosis)
+
+    def test_refuses_unowned_approach_directory(self):
+        old = self.snapshot()
+        (self.root / 'approach').mkdir()
+        (self.root / 'approach/other.html').write_text('DO NOT CHANGE')
+        with self.assertRaisesRegex(ValueError, 'unowned approach'):
+            installer.install(self.release, self.root)
+        self.assertEqual((self.root / 'approach/other.html').read_text(), 'DO NOT CHANGE')
+        for name, content in old.items():
+            self.assertEqual((self.root / name).read_bytes(), content)
 
     def test_refuses_symlink_parent(self):
         other = self.base / 'unrelated'

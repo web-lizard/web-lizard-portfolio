@@ -19,7 +19,7 @@ def safe_relative(name):
         raise ValueError(f'Unsafe manifest path: {name}')
     if path.as_posix() != name:
         raise ValueError(f'Non-canonical path: {name}')
-    if name != 'index.html' and (len(path.parts) < 2 or path.parts[0] not in ('portfolio-assets', 'portfolio-media')):
+    if name != 'index.html' and not (len(path.parts) == 2 and path.parts[0] == 'approach' and path.parts[1] in ('index.html', '.web-lizard-portfolio')) and (len(path.parts) < 2 or path.parts[0] not in ('portfolio-assets', 'portfolio-media')):
         raise ValueError(f'Unowned path: {name}')
     return path
 
@@ -60,6 +60,15 @@ def install(release, root, dry_run=False):
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     if not isinstance(manifest, dict) or 'index.html' not in manifest:
         raise ValueError('Missing index.html in manifest')
+    if 'approach/index.html' in manifest:
+        marker = 'approach/.web-lizard-portfolio'
+        if marker not in manifest:
+            raise ValueError('Missing approach ownership marker')
+        existing_approach = root / 'approach'
+        if existing_approach.exists() and not (existing_approach / '.web-lizard-portfolio').is_file():
+            raise ValueError('Refusing to replace an unowned approach directory')
+        if existing_approach.exists() and (existing_approach / '.web-lizard-portfolio').read_text(encoding='utf-8') != 'web-lizard-portfolio\n':
+            raise ValueError('Invalid approach ownership marker')
     jobs = []
     for name, digest in manifest.items():
         relative = safe_relative(name)
