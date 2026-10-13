@@ -31,7 +31,11 @@ test("all direct hashes, aliases, assets and desktop layout", async ({
       false,
     );
     expect(await page.evaluate(() => scrollY)).toBe(0);
-    expect(await page.locator('.scene.active').evaluate(s=>Math.round(s.getBoundingClientRect().top))).toBe(0);
+    expect(
+      await page
+        .locator(".scene.active")
+        .evaluate((s) => Math.round(s.getBoundingClientRect().top)),
+    ).toBe(0);
     expect(
       await page
         .locator(".scene.active")
@@ -58,27 +62,76 @@ test("wheel burst, keyboard, backward history and scene navigation", async ({
   page,
 }) => {
   await page.goto("/#home");
-  await page.waitForTimeout(1000);
   for (let i = 0; i < 15; i++) await page.mouse.wheel(0, 100);
   await expect(page.locator(".scene.active")).toHaveAttribute(
     "id",
     "philosophy",
   );
-  await page.waitForTimeout(1000);
+  await expect(page.locator("#scenes")).not.toHaveClass(/is-transitioning/);
   await page.keyboard.press("PageDown");
   await expect(page.locator(".scene.active")).toHaveAttribute("id", "modern");
-  await page.waitForTimeout(1000);
+  await expect(page.locator("#scenes")).not.toHaveClass(/is-transitioning/);
   await page.keyboard.press("ArrowUp");
   await expect(page.locator(".scene.active")).toHaveAttribute(
     "id",
     "philosophy",
   );
-  await page.waitForTimeout(1000);
+  await expect(page.locator("#scenes")).not.toHaveClass(/is-transitioning/);
   await page.keyboard.press("Space");
   await expect(page.locator(".scene.active")).toHaveAttribute("id", "modern");
   await page.locator('.scene-nav a[href="#contact"]').click();
   await expect(page).toHaveURL(/#contact$/);
   await page.goBack();
+  await expect(page.locator(".scene.active")).toHaveAttribute("id", "modern");
+});
+test("trackpad inertia crosses one scene with overlapping animated frames", async ({
+  page,
+}) => {
+  await page.goto("/#home");
+  await page.mouse.wheel(0, 120);
+  await expect(page.locator(".scene.active")).toHaveAttribute(
+    "id",
+    "philosophy",
+  );
+  await expect(page.locator("#home")).toHaveClass(/exiting/);
+  await expect(page.locator("#philosophy")).toHaveClass(/entering/);
+  await page.waitForTimeout(180);
+  const midpoint = await page.evaluate(() => ({
+    oldOpacity: Number(
+      getComputedStyle(document.querySelector("#home")).opacity,
+    ),
+    newOpacity: Number(
+      getComputedStyle(document.querySelector("#philosophy")).opacity,
+    ),
+    oldVisible: getComputedStyle(document.querySelector("#home")).visibility,
+    newVisible: getComputedStyle(document.querySelector("#philosophy"))
+      .visibility,
+  }));
+  expect(midpoint.oldOpacity).toBeGreaterThan(0);
+  expect(midpoint.oldOpacity).toBeLessThan(1);
+  expect(midpoint.newOpacity).toBeGreaterThan(0);
+  expect(midpoint.newOpacity).toBeLessThan(1);
+  expect(midpoint.oldVisible).toBe("visible");
+  expect(midpoint.newVisible).toBe("visible");
+  await page.evaluate(async () => {
+    for (let i = 0; i < 90; i++) {
+      document.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY: 18,
+        }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 16));
+    }
+  });
+  await expect(page.locator(".scene.active")).toHaveAttribute(
+    "id",
+    "philosophy",
+  );
+  await expect(page.locator("#scenes")).not.toHaveClass(/is-transitioning/);
+  await page.waitForTimeout(280);
+  await page.mouse.wheel(0, 120);
   await expect(page.locator(".scene.active")).toHaveAttribute("id", "modern");
 });
 test("project tabs, all screenshot galleries and keyboard focus", async ({

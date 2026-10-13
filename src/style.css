@@ -178,11 +178,7 @@ h3 {
   padding: 128px 10% 92px 7.3%;
   visibility: hidden;
   opacity: 0;
-  transform: translate3d(0, 55px, 0) scale(0.985);
-  transition:
-    opacity 0.6s ease,
-    transform 0.85s var(--ease),
-    visibility 0.85s;
+  transform: translate3d(0, var(--enter-y, 12vh), 0) scale(0.965);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -194,19 +190,281 @@ h3 {
   transform: none;
   z-index: 2;
 }
-.scene.leaving {
-  transform: translate3d(0, -65px, 0) scale(0.975);
+.scene.entering,
+.scene.exiting {
+  visibility: visible;
   pointer-events: none;
+  will-change: transform, opacity;
+  transition:
+    transform 1050ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 820ms cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.scene h2,
-.scene .hero-copy,
-.scene .project-stage,
-.scene .lab-layout {
-  transition: transform 1s var(--ease);
+.scene.entering {
+  z-index: 4;
 }
-.scene:not(.active) h2,
-.scene:not(.active) .hero-copy {
-  transform: translateY(30px);
+.scene.entering.active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.scene.exiting {
+  z-index: 3;
+  opacity: 0;
+  transform: translate3d(0, var(--exit-y, -10vh), 0) scale(1.035);
+}
+/* Firefox composites two moving full-screen scenes slowly. A single-scene
+   directional reveal keeps its transition on the compositor. */
+@supports (-moz-appearance: none) {
+  .scene.entering {
+    opacity: 1;
+    transform: none;
+    clip-path: var(--clip-start, inset(0 0 100% 0));
+    will-change: clip-path;
+    transition: clip-path 1050ms var(--ease);
+  }
+  .scene.entering.active {
+    clip-path: inset(0 0 0 0);
+  }
+  .scene.exiting {
+    visibility: hidden;
+    transform: none;
+    transition: none;
+  }
+}
+.scene
+  :is(
+    .hero-intro,
+    .hero-copy,
+    .hero-art,
+    .hero-bottom,
+    .section-heading,
+    .era-grid,
+    .era-signature,
+    .project-tabs,
+    .project-stage,
+    .archive-layout,
+    .archive-note,
+    .lab-layout,
+    .stack-layout,
+    .beyond-layout,
+    .pipeline,
+    .workflow-footer,
+    .manifesto-side,
+    .contact-bottom,
+    .contact-signoff
+  ) {
+  transition:
+    translate 900ms var(--ease),
+    opacity 750ms ease;
+}
+.scene.entering:not(.active)
+  :is(
+    .hero-intro,
+    .hero-copy,
+    .hero-art,
+    .hero-bottom,
+    .section-heading,
+    .era-grid,
+    .era-signature,
+    .project-tabs,
+    .project-stage,
+    .archive-layout,
+    .archive-note,
+    .lab-layout,
+    .stack-layout,
+    .beyond-layout,
+    .pipeline,
+    .workflow-footer,
+    .manifesto-side,
+    .contact-bottom,
+    .contact-signoff
+  ) {
+  translate: 0 30px;
+  opacity: 0;
+}
+.scene.entering.active .hero-art,
+.scene.entering.active .project-stage,
+.scene.entering.active .archive-layout,
+.scene.entering.active .lab-layout,
+.scene.entering.active .stack-layout,
+.scene.entering.active .manifesto-side {
+  transition-delay: 110ms;
+}
+.scene.entering.active .hero-bottom,
+.scene.entering.active .era-signature,
+.scene.entering.active .archive-note,
+.scene.entering.active .workflow-footer,
+.scene.entering.active .contact-signoff {
+  transition-delay: 170ms;
+}
+#scenes::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 66px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  transform-origin: left;
+  transform: scaleX(0);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+#scenes.is-transitioning::after {
+  animation: scene-sweep 1050ms var(--ease) both;
+}
+@keyframes scene-sweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+.hero.active h1 > span {
+  animation: title-arrive 900ms var(--ease) both;
+}
+.hero.active h1 > span:nth-child(2) {
+  animation-delay: 130ms;
+}
+.hero.active .title-star {
+  animation: symbol-arrive 950ms 460ms var(--ease) both;
+}
+.hero.active .hero-art img {
+  animation: portrait-arrive 1250ms var(--ease) both;
+}
+.projects.active .browser-frame,
+.archive.active .browser-frame {
+  animation: frame-arrive 1000ms var(--ease) both;
+}
+.projects.active .browser-frame::after,
+.archive.active .browser-frame::after,
+.lab.active .lab-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    #d8ff8d1c 50%,
+    transparent 65%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+  animation: frame-light 1250ms 380ms ease-out both;
+}
+.stack.active .node {
+  animation: node-arrive 650ms var(--ease) both;
+}
+.stack.active .node:nth-of-type(2),
+.stack.active .node:nth-of-type(3) {
+  animation-delay: 100ms;
+}
+.stack.active .node:nth-of-type(4),
+.stack.active .node:nth-of-type(5) {
+  animation-delay: 200ms;
+}
+.stack.active .node:nth-of-type(6) {
+  animation-delay: 300ms;
+}
+.workflow.active .pipeline li {
+  animation: pipeline-arrive 570ms var(--ease) both;
+}
+.workflow.active .pipeline li:nth-child(2) {
+  animation-delay: 80ms;
+}
+.workflow.active .pipeline li:nth-child(3) {
+  animation-delay: 160ms;
+}
+.workflow.active .pipeline li:nth-child(4) {
+  animation-delay: 240ms;
+}
+.workflow.active .pipeline li:nth-child(5) {
+  animation-delay: 320ms;
+}
+.workflow.active .pipeline li:nth-child(6) {
+  animation-delay: 400ms;
+}
+.workflow.active .pipeline li:nth-child(7) {
+  animation-delay: 480ms;
+}
+.workflow.active .pipeline li:nth-child(8) {
+  animation-delay: 560ms;
+}
+.contact.active .contact-arrow {
+  animation: symbol-arrive 1100ms 300ms var(--ease) both;
+}
+@keyframes title-arrive {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes symbol-arrive {
+  from {
+    opacity: 0;
+    transform: rotate(-35deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+@keyframes portrait-arrive {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes frame-arrive {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateY(35px) rotateY(10deg) rotateX(5deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translateY(0) rotateY(4deg) rotateX(2deg);
+  }
+}
+@keyframes frame-light {
+  from {
+    transform: translateX(-150%);
+  }
+  to {
+    transform: translateX(150%);
+  }
+}
+@keyframes node-arrive {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes pipeline-arrive {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 .section-heading {
   margin-bottom: 35px;

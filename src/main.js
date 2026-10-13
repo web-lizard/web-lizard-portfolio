@@ -26,30 +26,67 @@ const aliases = {
   workflow: "ai",
 };
 let active = 0,
-  lockUntil = 0,
+  transitionTimer = 0,
+  transitioning = false,
   lastWheel = 0,
   wheelAmount = 0,
-  wheelConsumed = false;
+  wheelConsumed = false,
+  initialized = false;
 const nav = $(".scene-nav");
+const sceneStage = $("#scenes");
+const transitionDuration = 1050;
 nav.innerHTML = scenes
   .map(
     (s, i) =>
       `<a href="#${s.id}" data-label="${labels[i]}" aria-label="${i + 1}. ${labels[i]}">${String(i + 1).padStart(2, "0")}</a>`,
   )
   .join("");
+function finishTransition() {
+  clearTimeout(transitionTimer);
+  transitioning = false;
+  sceneStage.classList.remove("is-transitioning");
+  scenes.forEach((scene, index) => {
+    scene.classList.remove("entering", "exiting");
+    scene.classList.toggle("active", index === active);
+  });
+}
 function navigate(index, { historyMode = "push", focus = false } = {}) {
   index = Math.max(0, Math.min(scenes.length - 1, index));
   const changed = index !== active;
+  if (transitioning) {
+    if (!changed) return;
+    finishTransition();
+  }
   const previous = scenes[active];
-  if (changed) {
-    previous.classList.add("leaving");
-    setTimeout(() => previous.classList.remove("leaving"), 850);
+  const animate = initialized && changed && !reduced.matches;
+  if (animate) {
+    const direction = index > active ? 1 : -1;
+    sceneStage.style.setProperty("--enter-y", direction > 0 ? "12vh" : "-12vh");
+    sceneStage.style.setProperty("--exit-y", direction > 0 ? "-10vh" : "10vh");
+    sceneStage.style.setProperty(
+      "--clip-start",
+      direction > 0 ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)",
+    );
+    const incoming = scenes[index];
+    incoming.classList.remove("active", "exiting");
+    incoming.classList.add("entering");
+    // Commit the start frame before applying destination styles.
+    incoming.getBoundingClientRect();
+    getComputedStyle(incoming).clipPath;
+    previous.classList.add("exiting");
+    previous.classList.remove("active");
+    incoming.classList.add("active");
+    sceneStage.classList.add("is-transitioning");
+    transitioning = true;
+    transitionTimer = window.setTimeout(finishTransition, transitionDuration);
+  } else if (changed) {
+    previous.classList.remove("active", "exiting", "entering");
+    scenes[index].classList.add("active");
   }
   active = index;
   window.scrollTo(0, 0);
-  $("#scenes").scrollTop = 0;
+  sceneStage.scrollTop = 0;
   scenes.forEach((s, i) => {
-    s.classList.toggle("active", i === index);
     s.inert = i !== index;
     s.setAttribute("aria-hidden", String(i !== index));
   });
@@ -74,13 +111,13 @@ function navigate(index, { historyMode = "push", focus = false } = {}) {
   $("#next").disabled = index === scenes.length - 1;
   $("#announcer").textContent =
     `${index + 1} из ${scenes.length}: ${labels[index]}`;
-  lockUntil = performance.now() + (reduced.matches ? 180 : 900);
   if (focus) {
     const heading = $("h1,h2", scenes[index]);
     heading.setAttribute("tabindex", "-1");
     heading.focus({ preventScroll: true });
   }
-  drawField();
+  moveField(index, animate);
+  initialized = true;
 }
 function fromHash() {
   const id = aliases[location.hash.slice(1)] || location.hash.slice(1);
@@ -119,22 +156,27 @@ document.addEventListener(
     const now = performance.now(),
       idle = now - lastWheel;
     lastWheel = now;
+    if (transitioning) {
+      e.preventDefault();
+      wheelAmount = 0;
+      return;
+    }
     if (canScroll(Math.sign(e.deltaY))) {
       wheelAmount = 0;
       return;
     }
     e.preventDefault();
-    if (idle > 180) {
+    if (idle > 240 && !transitioning) {
       wheelAmount = 0;
       wheelConsumed = false;
     }
-    if (now < lockUntil || wheelConsumed) {
+    if (wheelConsumed) {
       wheelAmount = 0;
       return;
     }
     wheelAmount +=
       e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-    if (Math.abs(wheelAmount) > 50) {
+    if (Math.abs(wheelAmount) > 58) {
       navigate(active + Math.sign(wheelAmount));
       wheelAmount = 0;
       wheelConsumed = true;
@@ -168,6 +210,10 @@ document.addEventListener("keydown", (e) => {
       ? -1
       : 0;
   if (!direction) return;
+  if (transitioning) {
+    e.preventDefault();
+    return;
+  }
   if (canScroll(direction)) {
     e.preventDefault();
     scenes[active].scrollBy({
@@ -177,7 +223,7 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   e.preventDefault();
-  if (!e.repeat && performance.now() >= lockUntil)
+  if (!e.repeat && !transitioning)
     navigate(active + direction, { focus: true });
 });
 let touch = null;
@@ -205,7 +251,7 @@ document.addEventListener(
       Math.abs(dy) > 65 &&
       Math.abs(dy) > Math.abs(dx) * 1.4 &&
       performance.now() - touch.time < 800 &&
-      performance.now() >= lockUntil &&
+      !transitioning &&
       Math.abs(scenes[active].scrollTop - touch.scrollTop) < 4 &&
       !canScroll(Math.sign(dy))
     )
@@ -359,7 +405,27 @@ bindTilt();
 const canvas = $("#field"),
   ctx = canvas.getContext("2d");
 let pointer = { x: 0, y: 0 },
-  fieldFrame = 0;
+  fieldFrame = 0,
+  fieldTransitionFrame = 0,
+  fieldScene = 0;
+function moveField(index, animate) {
+  cancelAnimationFrame(fieldTransitionFrame);
+  if (!animate) {
+    fieldScene = index;
+    drawField();
+    return;
+  }
+  const origin = fieldScene;
+  const start = performance.now();
+  function frame(now) {
+    const progress = Math.min((now - start) / transitionDuration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    fieldScene = origin + (index - origin) * eased;
+    drawField();
+    if (progress < 1) fieldTransitionFrame = requestAnimationFrame(frame);
+  }
+  fieldTransitionFrame = requestAnimationFrame(frame);
+}
 function drawField() {
   if (!ctx || document.hidden) return;
   const dpr = Math.min(devicePixelRatio || 1, 1.5),
@@ -374,16 +440,16 @@ function drawField() {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
-  const cx = w * (active === 0 ? 0.68 : 0.77),
+  const cx = w * (0.68 + 0.09 * Math.min(fieldScene, 1)),
     cy = h * 0.48,
     r = Math.min(w, h) * 0.47,
-    angle = active * 0.37 + pointer.x * 0.08;
+    angle = fieldScene * 0.37 + pointer.x * 0.08;
   ctx.strokeStyle = "#799f42";
   ctx.lineWidth = 0.6;
   const points = [];
   for (let i = 0; i < 48; i++) {
     const a = (i / 48) * Math.PI * 2 + angle;
-    const z = Math.sin(a * 3 + active) * 0.28;
+    const z = Math.sin(a * 3 + fieldScene) * 0.28;
     points.push([
       cx + Math.cos(a) * r * (1 + z * 0.15),
       cy + Math.sin(a) * r * 0.75 + pointer.y * 9,
@@ -393,7 +459,7 @@ function drawField() {
     if (i % 2 === 0) {
       ctx.beginPath();
       ctx.moveTo(...points[i]);
-      ctx.lineTo(...points[(i + 17 + active) % 48]);
+      ctx.lineTo(...points[(i + 17) % 48]);
       ctx.stroke();
     }
     ctx.fillStyle = "#a4d748";
