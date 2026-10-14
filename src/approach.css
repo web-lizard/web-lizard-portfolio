@@ -226,7 +226,7 @@ footer {
     padding-top: 55px;
   }
   h1 {
-    font-size: clamp(43px, 10vw, 72px);
+    font-size: clamp(34px, 9.2vw, 64px);
   }
   .dek {
     font-size: 18px;
@@ -251,6 +251,7 @@ footer {
   }
   .article-body h2 {
     margin-top: 60px;
+    font-size: clamp(28px, 7.5vw, 48px);
   }
   .article-body blockquote {
     margin: 50px 0;
@@ -260,7 +261,7 @@ footer {
     margin: 70px 0;
   }
   .article-cta h2 {
-    font-size: 60px;
+    font-size: clamp(36px, 9vw, 60px);
   }
   footer {
     padding: 25px 24px;

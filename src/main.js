@@ -1,7 +1,10 @@
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/space-grotesk";
 import "./style.css";
+import "./editorial.css";
 import { modern, legacy, gnosis } from "./data.js";
+import { setupReasoning } from "./reasoning.js";
+import { setupFrenchTooltips } from "./french.js";
 
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -39,7 +42,7 @@ const transitionDuration = 1050;
 nav.innerHTML = scenes
   .map(
     (s, i) =>
-      `<a href="#${s.id}" data-label="${labels[i]}" aria-label="${i + 1}. ${labels[i]}">${String(i + 1).padStart(2, "0")}</a>`,
+      `<a href="#${s.id}" aria-label="${i + 1}. ${labels[i]}"><span class="scene-nav-label">${labels[i]}</span><span aria-hidden="true">${String(i + 1).padStart(2, "0")}</span></a>`,
   )
   .join("");
 function finishTransition() {
@@ -81,7 +84,11 @@ function navigate(
         behavior: initialized && !reduced.matches ? "smooth" : "instant",
         block: "start",
       });
-    if (focus) $("h1,h2", scenes[index])?.focus({ preventScroll: true });
+    if (focus) {
+      const heading = $("h1,h2", scenes[index]);
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
     initialized = true;
     return;
   }
@@ -235,7 +242,10 @@ document.addEventListener("keydown", (e) => {
     )
   )
     return;
-  if ((e.key === " " || e.key === "Enter") && e.target.closest("button,a"))
+  if (
+    (e.key === " " || e.key === "Enter") &&
+    e.target.closest("button,a,summary")
+  )
     return;
   const direction = ["ArrowDown", "PageDown", " "].includes(e.key)
     ? e.shiftKey
@@ -302,7 +312,7 @@ const imagePath = (id) => `/portfolio-media/projects/${id}.webp`;
 const tags = (p) =>
   `<div class="tags">${(p.capabilities || p.tags).map((t) => `<span>${t}</span>`).join("")}</div>${p.capabilities ? `<div class="case-tech">${p.tags.join(" / ")}</div>` : ""}`;
 function frame(p) {
-  return `<button class="browser-frame tilt" data-gallery="${p.id}" aria-label="Открыть скриншоты ${p.name}"><span class="browser-bar"><i></i><i></i><i></i><span>${new URL(p.url).hostname}</span><b>↗</b></span><img src="${imagePath(p.images[0])}" alt="${p.name} — реальный скриншот сайта" width="1440" height="1000" loading="lazy" /></button>`;
+  return `<button class="browser-frame tilt" data-gallery="${p.id}" aria-label="${new URL(p.url).hostname} — открыть скриншоты ${p.name}"><span class="browser-bar"><i></i><i></i><i></i><span>${new URL(p.url).hostname}</span><b aria-hidden="true">↗</b></span><img src="${imagePath(p.images[0])}" alt="${p.name} — реальный скриншот сайта" width="1440" height="1000" loading="lazy" /></button>`;
 }
 function renderProject(group, index) {
   const data = group === "modern" ? modern : legacy,
@@ -316,9 +326,9 @@ function renderProject(group, index) {
   stage.setAttribute("aria-labelledby", `${group}-tab-${index}`);
   const info = `<div class="project-info"><span class="mono">${p.type}</span><h3>${p.name}</h3>${p.challenge ? `<div class="case-line"><b>ЗАДАЧА</b><p>${p.challenge}</p></div><div class="case-line"><b>МОЯ РАБОТА</b><p>${p.contribution}</p></div>` : `<p>${p.description}</p>`}${tags(p)}<a class="text-link" href="${p.url}" target="_blank" rel="noopener noreferrer">ОТКРЫТЬ САЙТ ↗</a></div>`;
   if (group === "modern")
-    stage.innerHTML = `<div>${frame(p)}<span class="gallery-hint">НАЖМИТЕ НА СКРИНШОТ, ЧТОБЫ РАССМОТРЕТЬ / ${p.images.length} КАДРА</span></div>${info}`;
+    stage.innerHTML = `<div class="project-exposure"><div class="fire-fragments" aria-hidden="true"><img src="${imagePath(p.images[1])}" alt="" loading="lazy" /><i></i><i></i><span>FEU. / ИДЕЯ → СИСТЕМА</span></div>${frame(p)}<span class="gallery-hint">НАЖМИТЕ НА СКРИНШОТ, ЧТОБЫ РАССМОТРЕТЬ / ${p.images.length} КАДРА</span></div>${info}`;
   else
-    stage.innerHTML = `${p.images.length ? frame(p) : '<div class="archive-unavailable"><span class="mono">HISTORICAL WORK / NO VERIFIED CAPTURE</span><strong>ADVANCED<br>FRONTEND.</strong><span>WOLF CMS × ART3D</span></div>'}<h3>${p.name}</h3><p>${p.description}</p>${tags(p)}<p class="archive-disclaimer">${p.note || "Скриншот текущей версии, октябрь 2026. Описание относится к моему участию в проекте."}</p><a class="text-link" href="${p.url}" target="_blank" rel="noopener noreferrer">ОТКРЫТЬ САЙТ ↗</a>`;
+    stage.innerHTML = `${p.images.length ? frame(p) : '<div class="archive-unavailable"><span class="mono">АРХИВ / ИСТОРИЧЕСКИЙ КАДР НЕ ПОДТВЕРЖДЁН</span><strong>СЛОЖНЫЙ<br>FRONTEND.</strong><span>WOLF CMS × ART3D</span></div>'}<h3>${p.name}</h3><p>${p.description}</p>${tags(p)}<p class="archive-disclaimer">${p.note || "Скриншот текущей версии, октябрь 2026. Описание относится к моему участию в проекте."}</p><a class="text-link" href="${p.url}" target="_blank" rel="noopener noreferrer">ОТКРЫТЬ САЙТ ↗</a>`;
   bindTilt(stage);
 }
 function setupTabs(group, data) {
@@ -413,6 +423,8 @@ function bindTilt(root = document) {
 setupTabs("modern", modern);
 setupTabs("legacy", legacy);
 bindTilt();
+setupReasoning($(".reasoning"), reduced);
+setupFrenchTooltips();
 
 // One shared low-cost wireframe: redraw only during pointer interaction or scene changes.
 const canvas = $("#field"),
@@ -440,7 +452,7 @@ function moveField(index, animate) {
   fieldTransitionFrame = requestAnimationFrame(frame);
 }
 function drawField() {
-  if (!ctx || document.hidden) return;
+  if (!ctx || document.hidden || mobile.matches) return;
   const dpr = Math.min(devicePixelRatio || 1, 1.5),
     w = innerWidth,
     h = innerHeight;
@@ -499,26 +511,38 @@ window.addEventListener("resize", drawField);
 reduced.addEventListener("change", drawField);
 document.addEventListener("visibilitychange", drawField);
 fromHash();
-const chapterObserver = new IntersectionObserver(
-  (entries) => {
-    if (!mobile.matches) return;
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    const index = scenes.indexOf(visible.target);
-    if (index !== active)
-      navigate(index, { historyMode: "replace", scroll: false });
+// A fixed reading line works for chapters taller than the viewport too.
+let chapterFrame = 0,
+  chapterHistoryTimer = 0;
+window.addEventListener(
+  "scroll",
+  () => {
+    if (!mobile.matches || chapterFrame) return;
+    clearTimeout(chapterHistoryTimer);
+    chapterFrame = requestAnimationFrame(() => {
+      chapterFrame = 0;
+      const readingLine = innerHeight * 0.35;
+      let index = 0;
+      scenes.forEach((scene, i) => {
+        if (scene.getBoundingClientRect().top <= readingLine) index = i;
+      });
+      if (index !== active)
+        navigate(index, { historyMode: "none", scroll: false });
+      chapterHistoryTimer = window.setTimeout(() => {
+        if (mobile.matches)
+          navigate(active, { historyMode: "replace", scroll: false });
+      }, 180);
+    });
   },
-  { threshold: [0.25, 0.5, 0.75] },
+  { passive: true },
 );
-scenes.forEach((scene) => chapterObserver.observe(scene));
 mobile.addEventListener("change", () => {
+  clearTimeout(chapterHistoryTimer);
   finishTransition();
   initialized = false;
   scenes.forEach((scene) => {
     scene.inert = false;
     scene.setAttribute("aria-hidden", "false");
   });
-  fromHash();
+  navigate(active, { historyMode: "replace" });
 });

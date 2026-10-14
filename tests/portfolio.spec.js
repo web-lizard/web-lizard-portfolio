@@ -140,7 +140,7 @@ test("project tabs, all screenshot galleries and keyboard focus", async ({
   await page.goto("/#modern");
   for (const tab of await page.locator("#modern-tabs button").all()) {
     await tab.click();
-    const images = page.locator("#modern-stage img");
+    const images = page.locator("#modern-stage .browser-frame img");
     await expect(images).toHaveJSProperty("complete", true);
     expect(await images.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
     await page.locator("#modern-stage [data-gallery]").click();

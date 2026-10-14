@@ -754,8 +754,7 @@ h3 {
   color: #747d69;
   position: relative;
 }
-.scene-nav a:before {
-  content: attr(data-label);
+.scene-nav-label {
   position: absolute;
   right: 45px;
   white-space: nowrap;
@@ -768,8 +767,8 @@ h3 {
   letter-spacing: 0.1em;
   pointer-events: none;
 }
-.scene-nav a:hover:before,
-.scene-nav a:focus-visible:before {
+.scene-nav a:hover .scene-nav-label,
+.scene-nav a:focus-visible .scene-nav-label {
   opacity: 1;
   transform: none;
 }
